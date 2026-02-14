@@ -1,0 +1,166 @@
+.results {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
+/* Score badge */
+.score-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.score-good {
+  background: var(--green-100);
+  color: var(--green-900);
+}
+
+.score-okay {
+  background: var(--yellow-100);
+  color: var(--yellow-600);
+}
+
+.score-poor {
+  background: var(--red-100);
+  color: var(--red-600);
+}
+
+.score-emoji {
+  font-size: 1.3rem;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+}
+
+.card-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-500);
+  margin-bottom: 0.75rem;
+}
+
+/* Product info */
+.product-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  background: var(--gray-50);
+}
+
+.product-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.product-brand {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  margin-top: 0.15rem;
+}
+
+/* Flags */
+.flag-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.flag-item {
+  padding: 0.6rem 0.75rem;
+  background: var(--red-100);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.flag-name {
+  font-weight: 600;
+  color: var(--red-600);
+  text-transform: capitalize;
+}
+
+.flag-reason {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+}
+
+/* Ingredients */
+.ingredients-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+
+/* Nutrition */
+.nutrition-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.nutrition-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.nutrition-row:last-child {
+  border-bottom: none;
+}
+
+.nutrition-value {
+  font-weight: 600;
+}
+
+/* Alternatives */
+.alt-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.alt-item {
+  padding: 0.6rem 0.75rem;
+  background: var(--green-50);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.alt-name {
+  font-weight: 600;
+  color: var(--green-700);
+}
+
+.alt-why {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+}
+
+/* Scan again */
+.scan-again {
+  width: 100%;
+  margin-top: 0.5rem;
+}
