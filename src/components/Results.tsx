@@ -8,11 +8,17 @@ interface ResultViewProps {
   onScanAgain: () => void;
 }
 
+const SkullIcon = () => (
+  <svg className="skull-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12c0 3.07 1.38 5.81 3.55 7.65L5 22h3.5l.5-2h6l.5 2H19l-.55-2.35C20.62 17.81 22 15.07 22 12c0-5.52-4.48-10-10-10zM8.5 14a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm7 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+  </svg>
+);
+
 const SCORE_CONFIG = {
-  good: { label: 'Whole', emoji: '\u2713', badgeClass: 'badge badge-whole', percent: 95 },
-  okay: { label: 'Questionable', emoji: '!', badgeClass: 'badge badge-questionable', percent: 55 },
-  poor: { label: 'Slop', emoji: '\u2717', badgeClass: 'badge badge-slop', percent: 20 },
-} as const;
+  good: { label: 'Whole', icon: '\u2713' as string | null, badgeClass: 'badge badge-whole', percent: 95 },
+  okay: { label: 'Questionable', icon: '!' as string | null, badgeClass: 'badge badge-questionable', percent: 55 },
+  poor: { label: 'Slop', icon: null, badgeClass: 'badge badge-slop', percent: 20 },
+};
 
 const CONCERN_LABELS: Record<string, { text: string; className: string }> = {
   low: { text: 'Low concern', className: 'concern-low' },
@@ -40,7 +46,7 @@ function ScoreRing({ score }: { score: 'good' | 'okay' | 'poor' }) {
         />
       </svg>
       <div className={`score-ring-label ${score}`}>
-        <span>{cfg.emoji}</span>
+        {cfg.icon ? <span>{cfg.icon}</span> : <SkullIcon />}
       </div>
     </div>
   );

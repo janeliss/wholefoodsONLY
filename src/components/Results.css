@@ -68,6 +68,12 @@
 .score-ring-label.okay { color: var(--yellow); }
 .score-ring-label.poor { color: var(--red); }
 
+.skull-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  filter: drop-shadow(0 0 6px var(--red-glow));
+}
+
 .score-verdict {
   font-family: var(--font-heading);
   font-size: 1.1rem;
