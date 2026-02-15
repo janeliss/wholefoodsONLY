@@ -11,13 +11,13 @@
   max-width: 480px;
 }
 
-/* Error card */
+/* ============ Error card ============ */
 .error-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  padding: 3rem 2rem;
+  padding: 2.5rem 1.5rem;
   text-align: center;
   margin-top: 1rem;
   background: var(--glass);
@@ -31,11 +31,24 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--red-soft);
-  color: var(--red);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.error-icon-not-found {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.error-icon-network {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.error-icon-warning {
+  background: var(--red-soft);
+  color: var(--red);
 }
 
 .error-title {
@@ -50,4 +63,92 @@
   line-height: 1.5;
   max-width: 320px;
   font-size: 0.9rem;
+}
+
+/* ============ Fallback search ============ */
+
+.error-search {
+  width: 100%;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+.error-search-label {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.error-search-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.error-search-form .manual-input {
+  flex: 1;
+}
+
+.search-results {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.search-result-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+
+.search-result-btn:hover {
+  border-color: var(--accent);
+  background: var(--glass);
+}
+
+.search-result-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.search-result-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.search-result-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-result-brand {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.search-empty {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-top: 0.5rem;
+  font-style: italic;
 }
