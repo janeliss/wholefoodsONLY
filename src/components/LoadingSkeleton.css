@@ -1,0 +1,72 @@
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.loading-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.loading-barcode {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-family: monospace;
+}
+
+.skel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skel-img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+}
+
+.skel-line {
+  height: 14px;
+}
+
+.skel-line-sm { width: 30%; }
+.skel-line-md { width: 50%; }
+.skel-line-lg { width: 70%; }
+.skel-line-full { width: 100%; }
+
+.skel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.skel-box {
+  height: 56px;
+  border-radius: var(--radius-sm);
+}

@@ -2,80 +2,175 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
   padding-bottom: 2rem;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Score badge */
-.score-badge {
+/* ============ Score Header ============ */
+
+.score-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+/* Score Ring */
+.score-ring-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.score-ring-svg {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+
+.score-ring-bg {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 6;
+}
+
+.score-ring-fill {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.score-ring-fill.good { stroke: var(--green); filter: drop-shadow(0 0 6px var(--green-glow)); }
+.score-ring-fill.okay { stroke: var(--yellow); filter: drop-shadow(0 0 6px var(--yellow-glow)); }
+.score-ring-fill.poor { stroke: var(--red); filter: drop-shadow(0 0 6px var(--red-glow)); }
+
+.score-ring-label {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-radius: var(--radius);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
   font-weight: 700;
+}
+
+.score-ring-label.good { color: var(--green); }
+.score-ring-label.okay { color: var(--yellow); }
+.score-ring-label.poor { color: var(--red); }
+
+.score-verdict {
+  font-family: var(--font-heading);
   font-size: 1.1rem;
-}
-
-.score-good {
-  background: var(--green-100);
-  color: var(--green-900);
-}
-
-.score-okay {
-  background: var(--yellow-100);
-  color: var(--yellow-600);
-}
-
-.score-poor {
-  background: var(--red-100);
-  color: var(--red-600);
-}
-
-.score-emoji {
-  font-size: 1.3rem;
-}
-
-/* Cards */
-.card {
-  background: white;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 1.25rem;
-}
-
-.card-title {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--gray-500);
-  margin-bottom: 0.75rem;
-}
-
-/* Product info */
-.product-image {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
-  background: var(--gray-50);
-}
-
-.product-name {
-  font-size: 1.25rem;
   font-weight: 700;
-  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-.product-brand {
-  color: var(--gray-500);
-  font-size: 0.9rem;
+.score-verdict.good { color: var(--green); }
+.score-verdict.okay { color: var(--yellow); }
+.score-verdict.poor { color: var(--red); }
+
+.score-badge-inline {
   margin-top: 0.15rem;
 }
 
-/* Flags */
+/* ============ Product Info ============ */
+
+.product-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.product-image {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-name {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.product-brand {
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  margin-top: 0.15rem;
+}
+
+/* ============ Section Card (glass) ============ */
+
+.result-card {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
+}
+
+.result-card-title {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+/* ============ Score Breakdown ============ */
+
+.breakdown-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.breakdown-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.breakdown-dot.positive { background: var(--green); }
+.breakdown-dot.neutral { background: var(--text-tertiary); }
+.breakdown-dot.negative { background: var(--red); }
+
+/* ============ Flagged Ingredients ============ */
+
 .flag-list {
   list-style: none;
   display: flex;
@@ -84,33 +179,267 @@
 }
 
 .flag-item {
-  padding: 0.6rem 0.75rem;
-  background: var(--red-100);
-  border-radius: 8px;
+  padding: 0.75rem;
+  background: var(--red-soft);
+  border: 1px solid rgba(248, 113, 113, 0.15);
+  border-radius: var(--radius-sm);
+}
+
+.flag-header {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .flag-name {
+  font-family: var(--font-heading);
   font-weight: 600;
-  color: var(--red-600);
+  color: var(--red);
   text-transform: capitalize;
+  font-size: 0.9rem;
 }
 
 .flag-reason {
-  font-size: 0.85rem;
-  color: var(--gray-700);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
 }
 
-/* Ingredients */
-.ingredients-text {
+/* Intel expandable inside flag */
+.flag-intel {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(248, 113, 113, 0.1);
+}
+
+.intel-section {
+  margin-bottom: 0.5rem;
+}
+
+.intel-section-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.intel-bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.intel-bullets li {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-left: 0.75rem;
+  position: relative;
+}
+
+.intel-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+
+.intel-citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.intel-citation-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--lavender);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+}
+
+.intel-citation-link:hover {
+  background: var(--lavender-soft);
+  border-color: var(--lavender);
+}
+
+.intel-unknown {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* ============ Sneaky Ingredients ============ */
+
+.sneaky-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sneaky-item {
+  padding: 0.75rem;
+  background: var(--orange-soft);
+  border: 1px solid rgba(251, 146, 60, 0.15);
+  border-radius: var(--radius-sm);
+}
+
+.sneaky-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sneaky-term {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--orange);
   font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--gray-700);
 }
 
-/* Nutrition */
+.sneaky-matched {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  padding: 0.1rem 0.4rem;
+  background: var(--surface);
+  border-radius: 999px;
+}
+
+.sneaky-explanation {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-top: 0.35rem;
+}
+
+.sneaky-alt {
+  font-size: 0.78rem;
+  color: var(--green);
+  margin-top: 0.35rem;
+}
+
+.sneaky-alt strong {
+  font-weight: 600;
+}
+
+/* ============ Sodium ============ */
+
+.sodium-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sodium-ring-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.sodium-ring-svg {
+  width: 56px;
+  height: 56px;
+  transform: rotate(-90deg);
+}
+
+.sodium-ring-bg {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 5;
+}
+
+.sodium-ring-fill {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sodium-info {
+  flex: 1;
+}
+
+.sodium-mg {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sodium-dv {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+.sodium-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sodium-label.low {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.sodium-label.moderate {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.sodium-label.high {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.sodium-note {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 0.6rem;
+  line-height: 1.5;
+}
+
+.sodium-unavailable {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* ============ Ingredients Text ============ */
+
+.ingredients-text {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* ============ Nutrition ============ */
+
 .nutrition-grid {
   display: flex;
   flex-direction: column;
@@ -120,8 +449,9 @@
   display: flex;
   justify-content: space-between;
   padding: 0.4rem 0;
-  font-size: 0.9rem;
-  border-bottom: 1px solid var(--gray-100);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .nutrition-row:last-child {
@@ -130,36 +460,210 @@
 
 .nutrition-value {
   font-weight: 600;
+  color: var(--text-primary);
 }
 
-/* Alternatives */
+/* ============ Alternatives ============ */
+
 .alt-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .alt-item {
   padding: 0.6rem 0.75rem;
-  background: var(--green-50);
-  border-radius: 8px;
+  background: var(--green-soft);
+  border: 1px solid rgba(52, 211, 153, 0.15);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
 }
 
 .alt-name {
+  font-family: var(--font-heading);
   font-weight: 600;
-  color: var(--green-700);
+  color: var(--green);
+  font-size: 0.88rem;
 }
 
 .alt-why {
-  font-size: 0.85rem;
-  color: var(--gray-700);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
-/* Scan again */
+/* ============ Scan Again ============ */
+
+/* ============ Concern Badge ============ */
+
+.intel-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.concern-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.concern-low {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.concern-med {
+  background: var(--yellow-soft);
+  color: var(--yellow);
+}
+
+.concern-high {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.intel-category {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  text-transform: capitalize;
+}
+
+.intel-definition {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
+  opacity: 0.85;
+}
+
+/* ============ Expandable Panel ============ */
+
+.expandable-panel {
+  width: 100%;
+}
+
+.expandable-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.35rem 0;
+  transition: color 0.15s ease;
+}
+
+.expandable-trigger:hover {
+  color: var(--text-primary);
+}
+
+.expandable-chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.expandable-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.expandable-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.expandable-content.open {
+  grid-template-rows: 1fr;
+}
+
+.expandable-inner {
+  overflow: hidden;
+  padding-top: 0;
+  transition: padding-top 0.3s ease;
+}
+
+.expandable-content.open .expandable-inner {
+  padding-top: 0.5rem;
+}
+
+/* ============ Sneaky Detail ============ */
+
+.sneaky-detail {
+  margin-top: 0.35rem;
+}
+
+/* ============ Sodium Per Span ============ */
+
+.sodium-per {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* ============ Staggered Entrance Animations ============ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+.stagger-2 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+.stagger-3 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
+.stagger-4 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+.stagger-5 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+.stagger-6 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+.stagger-7 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+.stagger-8 { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+
+/* ============ Enhanced Score Ring Glow ============ */
+
+.score-ring-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  opacity: 0.3;
+  filter: blur(12px);
+  z-index: -1;
+  transition: opacity 0.5s ease;
+}
+
+.score-header:has(.score-ring-fill.good) .score-ring-wrap::after {
+  background: var(--green);
+}
+
+.score-header:has(.score-ring-fill.okay) .score-ring-wrap::after {
+  background: var(--yellow);
+}
+
+.score-header:has(.score-ring-fill.poor) .score-ring-wrap::after {
+  background: var(--red);
+}
+
+/* ============ Scan Again ============ */
+
 .scan-again {
   width: 100%;
   margin-top: 0.5rem;

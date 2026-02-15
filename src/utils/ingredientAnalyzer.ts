@@ -1,4 +1,5 @@
-import type { IngredientFlag } from '../types/product';
+import type { IngredientFlag, SodiumAnalysis, SodiumLevel, ScoreBreakdownItem } from '../types/product';
+import { lookupIngredient } from '../data/ingredientIntel';
 
 const ULTRA_PROCESSED_MARKERS: Array<{ pattern: RegExp; reason: string }> = [
   // Sweeteners
@@ -49,6 +50,7 @@ export function analyzeIngredients(ingredients: string[]): IngredientFlag[] {
       flags.push({
         ingredient: match[0],
         reason: marker.reason,
+        intel: lookupIngredient(match[0]),
       });
     }
   }
@@ -56,8 +58,101 @@ export function analyzeIngredients(ingredients: string[]): IngredientFlag[] {
   return flags;
 }
 
-export function computeScore(flags: IngredientFlag[], novaGroup?: number): 'good' | 'okay' | 'poor' {
-  if (novaGroup === 4 || flags.length >= 4) return 'poor';
-  if (novaGroup === 3 || flags.length >= 1) return 'okay';
-  return 'good';
+/** FDA Daily Value for sodium: 2300 mg */
+const SODIUM_DV_MG = 2300;
+
+/** Sodium thresholds per 100g (FDA guidance) */
+const SODIUM_LOW_THRESHOLD = 140; // mg per serving — "low sodium"
+const SODIUM_HIGH_THRESHOLD = 600; // mg per 100g — "high sodium"
+
+export function analyzeSodium(sodiumMg: number | null): SodiumAnalysis | null {
+  if (sodiumMg === null) return null;
+
+  const percentDV = Math.round((sodiumMg / SODIUM_DV_MG) * 100);
+
+  let level: SodiumLevel;
+  if (sodiumMg <= SODIUM_LOW_THRESHOLD) {
+    level = 'low';
+  } else if (sodiumMg <= SODIUM_HIGH_THRESHOLD) {
+    level = 'moderate';
+  } else {
+    level = 'high';
+  }
+
+  return { milligrams: sodiumMg, percentDV, level };
+}
+
+export function computeScore(
+  flags: IngredientFlag[],
+  novaGroup: number | undefined,
+  sneakyCount: number,
+  sodiumAnalysis: SodiumAnalysis | null,
+): { score: 'good' | 'okay' | 'poor'; breakdown: ScoreBreakdownItem[] } {
+  const breakdown: ScoreBreakdownItem[] = [];
+  let penalty = 0;
+
+  // Flag-based scoring
+  if (flags.length === 0) {
+    breakdown.push({ label: 'No flagged additives', impact: 'positive' });
+  } else if (flags.length <= 2) {
+    penalty += 1;
+    breakdown.push({ label: `${flags.length} flagged additive${flags.length > 1 ? 's' : ''}`, impact: 'negative' });
+  } else {
+    penalty += 2;
+    breakdown.push({ label: `${flags.length} flagged additives`, impact: 'negative' });
+  }
+
+  // NOVA group
+  if (novaGroup === 4) {
+    penalty += 2;
+    breakdown.push({ label: 'NOVA 4 (ultra-processed)', impact: 'negative' });
+  } else if (novaGroup === 3) {
+    penalty += 1;
+    breakdown.push({ label: 'NOVA 3 (processed)', impact: 'negative' });
+  } else if (novaGroup === 1) {
+    breakdown.push({ label: 'NOVA 1 (unprocessed)', impact: 'positive' });
+  } else if (novaGroup === 2) {
+    breakdown.push({ label: 'NOVA 2 (minimally processed)', impact: 'neutral' });
+  }
+
+  // Sneaky ingredients
+  if (sneakyCount > 0) {
+    penalty += 1;
+    breakdown.push({ label: `${sneakyCount} sneaky ingredient${sneakyCount > 1 ? 's' : ''} detected`, impact: 'negative' });
+  }
+
+  // Sodium
+  if (sodiumAnalysis) {
+    if (sodiumAnalysis.level === 'high') {
+      penalty += 1;
+      breakdown.push({ label: 'High sodium content', impact: 'negative' });
+    } else if (sodiumAnalysis.level === 'low') {
+      breakdown.push({ label: 'Low sodium', impact: 'positive' });
+    } else {
+      breakdown.push({ label: 'Moderate sodium', impact: 'neutral' });
+    }
+  }
+
+  // High-concern categories
+  const hasArtificialSweetener = flags.some(f => /artificial sweetener/i.test(f.reason));
+  const hasTransFat = flags.some(f => /trans fat|hydrogenated/i.test(f.reason));
+  if (hasArtificialSweetener) {
+    penalty += 1;
+    breakdown.push({ label: 'Contains artificial sweeteners', impact: 'negative' });
+  }
+  if (hasTransFat) {
+    penalty += 1;
+    breakdown.push({ label: 'Contains hydrogenated oils', impact: 'negative' });
+  }
+
+  let score: 'good' | 'okay' | 'poor';
+  if (penalty >= 3) {
+    score = 'poor';
+  } else if (penalty >= 1) {
+    score = 'okay';
+  } else {
+    score = 'good';
+  }
+
+  return { score, breakdown };
 }
