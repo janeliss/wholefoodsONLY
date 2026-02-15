@@ -31,25 +31,19 @@ export class LookupError extends Error {
 
 /**
  * Normalizes barcode input:
- * - Strips whitespace and leading zeros beyond valid length
+ * - Strips whitespace only (preserves leading zeros — they matter for EAN/UPC)
  * - Converts 12-digit UPC-A to 13-digit EAN-13 by prepending "0"
- * - Validates the result is numeric and a reasonable length (8–14 digits)
+ * - Returns the cleaned barcode for API lookup
  */
 export function normalizeBarcode(raw: string): string {
-  const stripped = raw.replace(/\s+/g, '').replace(/^0+/, '') || '0';
+  // Only strip whitespace — never strip leading zeros, they're part of the barcode
+  const code = raw.replace(/\s+/g, '');
 
-  // Re-pad: UPC-A (12 digits) → EAN-13 (prepend 0)
-  // EAN-8 is 8 digits, EAN-13 is 13, UPC-A is 12
-  let code = stripped;
+  if (!/^\d+$/.test(code)) return code; // non-numeric, let validation catch it
 
-  if (/^\d+$/.test(code)) {
-    if (code.length < 8) {
-      code = code.padStart(8, '0'); // pad short codes to EAN-8
-    } else if (code.length === 12) {
-      code = '0' + code; // UPC-A → EAN-13
-    } else if (code.length > 8 && code.length < 13) {
-      code = code.padStart(13, '0'); // pad to EAN-13
-    }
+  // UPC-A (12 digits) → EAN-13 (prepend 0) for OpenFoodFacts compatibility
+  if (code.length === 12) {
+    return '0' + code;
   }
 
   return code;
@@ -148,30 +142,9 @@ function delay(ms: number): Promise<void> {
 /* ========== Core fetch with retry ========== */
 
 async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
+  let res: Response;
   try {
-    const res = await fetch(url);
-
-    if (res.status === 429) {
-      if (attempt <= MAX_RETRIES) {
-        const retryAfter = res.headers.get('Retry-After');
-        const waitMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : RETRY_DELAY_MS * attempt;
-        log('warn', `Rate limited (429), retrying in ${waitMs}ms`, { attempt, url });
-        await delay(waitMs);
-        return fetchWithRetry(url, attempt + 1);
-      }
-      throw new LookupError('rate_limited', 'OpenFoodFacts is rate limiting requests. Please wait a moment and try again.', 429);
-    }
-
-    if (res.status >= 500) {
-      if (attempt <= MAX_RETRIES) {
-        log('warn', `Server error (${res.status}), retrying`, { attempt, url });
-        await delay(RETRY_DELAY_MS * attempt);
-        return fetchWithRetry(url, attempt + 1);
-      }
-      throw new LookupError('server', `OpenFoodFacts server error (HTTP ${res.status}). Try again shortly.`, res.status);
-    }
-
-    return res;
+    res = await fetch(url);
   } catch (err) {
     if (err instanceof LookupError) throw err;
 
@@ -186,59 +159,93 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
       'Could not connect to the food database. Check your internet connection and try again.',
     );
   }
+
+  if (res.status === 429) {
+    if (attempt <= MAX_RETRIES) {
+      const retryAfter = res.headers.get('Retry-After');
+      const waitMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : RETRY_DELAY_MS * attempt;
+      log('warn', `Rate limited (429), retrying in ${waitMs}ms`, { attempt, url });
+      await delay(waitMs);
+      return fetchWithRetry(url, attempt + 1);
+    }
+    throw new LookupError('rate_limited', 'OpenFoodFacts is rate limiting requests. Please wait a moment and try again.', 429);
+  }
+
+  if (res.status >= 500) {
+    if (attempt <= MAX_RETRIES) {
+      log('warn', `Server error (${res.status}), retrying`, { attempt, url });
+      await delay(RETRY_DELAY_MS * attempt);
+      return fetchWithRetry(url, attempt + 1);
+    }
+    throw new LookupError('server', `OpenFoodFacts server error (HTTP ${res.status}). Try again shortly.`, res.status);
+  }
+
+  return res;
 }
 
 /* ========== Public API ========== */
 
-export async function fetchProduct(rawBarcode: string): Promise<Product> {
-  const barcode = normalizeBarcode(rawBarcode);
-  log('info', 'Looking up product', { rawBarcode, normalizedBarcode: barcode });
+/** Try a single barcode against the API, return Product or null */
+async function tryLookup(code: string): Promise<Product | null> {
+  try {
+    const res = await fetchWithRetry(`${API_BASE}/${code}.json`);
 
-  if (!validateBarcode(barcode)) {
+    // OpenFoodFacts returns 200 for everything — non-200 means something unexpected
+    if (!res.ok) {
+      log('warn', `Non-200 response for ${code}`, { status: res.status });
+      return null;
+    }
+
+    const data: OpenFoodFactsResponse = await res.json();
+
+    if (data.status === 0 || !data.product) {
+      return null;
+    }
+
+    return parseProduct(code, data);
+  } catch (err) {
+    // Re-throw rate limit and network errors — those aren't barcode-specific
+    if (err instanceof LookupError && (err.kind === 'rate_limited' || err.kind === 'network' || err.kind === 'server')) {
+      throw err;
+    }
+    return null;
+  }
+}
+
+export async function fetchProduct(rawBarcode: string): Promise<Product> {
+  const normalized = normalizeBarcode(rawBarcode);
+  const cleaned = rawBarcode.replace(/\s+/g, '');
+  log('info', 'Looking up product', { rawBarcode, normalized });
+
+  if (!validateBarcode(normalized)) {
     throw new LookupError(
       'invalid_barcode',
       `"${rawBarcode}" doesn't look like a valid barcode. Barcodes are typically 8-14 digits.`,
     );
   }
 
-  const res = await fetchWithRetry(`${API_BASE}/${barcode}.json`);
-
-  if (!res.ok) {
-    log('error', 'Unexpected HTTP status', { status: res.status, barcode });
-    throw new LookupError('server', `Unexpected response from food database (HTTP ${res.status}).`, res.status);
+  // Build list of barcode variants to try (deduplicated, in priority order)
+  const candidates = [normalized];
+  if (cleaned !== normalized) candidates.push(cleaned);
+  // If it's a 13-digit code starting with 0, also try without the leading 0 (EAN-13 → UPC-A)
+  if (normalized.length === 13 && normalized.startsWith('0')) {
+    candidates.push(normalized.slice(1));
   }
 
-  const data: OpenFoodFactsResponse = await res.json();
-
-  if (data.status === 0 || !data.product) {
-    // If we padded a UPC-A to EAN-13, try the original 12-digit code too
-    if (barcode !== rawBarcode.trim() && rawBarcode.trim().length >= 8) {
-      const altCode = rawBarcode.trim();
-      log('info', 'Primary lookup missed, trying original code', { altCode });
-
-      try {
-        const altRes = await fetchWithRetry(`${API_BASE}/${altCode}.json`);
-        if (altRes.ok) {
-          const altData: OpenFoodFactsResponse = await altRes.json();
-          if (altData.status !== 0 && altData.product) {
-            log('info', 'Found product with original barcode', { altCode });
-            return parseProduct(altCode, altData);
-          }
-        }
-      } catch {
-        // Fall through to not_found
-      }
+  for (const code of candidates) {
+    log('info', `Trying barcode: ${code}`);
+    const product = await tryLookup(code);
+    if (product) {
+      log('info', 'Product found', { code, name: product.name });
+      return product;
     }
-
-    log('warn', 'Product not found', { barcode, status_verbose: data.status_verbose });
-    throw new LookupError(
-      'not_found',
-      `No product found for barcode ${rawBarcode}. This item may not be in the OpenFoodFacts database yet.`,
-    );
   }
 
-  log('info', 'Product found', { barcode, name: data.product.product_name });
-  return parseProduct(barcode, data);
+  log('warn', 'Product not found after all attempts', { candidates });
+  throw new LookupError(
+    'not_found',
+    `No product found for barcode ${rawBarcode}. This item may not be in the OpenFoodFacts database yet.`,
+  );
 }
 
 /* ========== Search by name (fallback) ========== */

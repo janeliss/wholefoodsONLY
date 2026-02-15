@@ -45,11 +45,17 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
     };
   }, [onScan, t]);
 
+  // Sanitize input: strip non-numeric chars, limit length
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(/[^0-9]/g, '').slice(0, 14);
+    setManualCode(sanitized);
+  }, []);
+
   const handleManualSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       const code = manualCode.trim();
-      if (code) {
+      if (code && /^\d{8,14}$/.test(code)) {
         readerRef.current?.reset();
         onScan(code);
       }
@@ -99,10 +105,10 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
             pattern="[0-9]*"
             placeholder={t('manualPlaceholder')}
             value={manualCode}
-            onChange={(e) => setManualCode(e.target.value)}
+            onChange={handleInputChange}
             className="manual-input"
           />
-          <button type="submit" className="btn" disabled={!manualCode.trim()}>
+          <button type="submit" className="btn" disabled={!/^\d{8,14}$/.test(manualCode)}>
             {t('lookUp')}
           </button>
         </form>
