@@ -1,6 +1,9 @@
 import './Header.css';
+import { useI18n } from '../i18n';
 
 export default function Header() {
+  const { lang, toggleLang, t } = useI18n();
+
   return (
     <header className="header">
       <div className="header-inner">
@@ -14,9 +17,15 @@ export default function Header() {
           </div>
           <div>
             <h1 className="header-title">NO-SLOP</h1>
-            <p className="header-tagline">Whole foods only. No slop.</p>
+            <p className="header-tagline">{t('tagline')}</p>
           </div>
         </div>
+
+        <button className="lang-toggle" onClick={toggleLang} aria-label="Toggle language">
+          <span className={`lang-option ${lang === 'en' ? 'active' : ''}`}>EN</span>
+          <span className="lang-divider">/</span>
+          <span className={`lang-option ${lang === 'es' ? 'active' : ''}`}>ES</span>
+        </button>
       </div>
     </header>
   );

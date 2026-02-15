@@ -11,22 +11,24 @@ import { analyzeIngredients, analyzeSodium, computeScore } from './utils/ingredi
 import { suggestAlternatives } from './utils/alternatives';
 import { detectSneakyIngredients } from './data/sneakyIngredients';
 import type { AnalysisResult } from './types/product';
+import { useI18n } from './i18n';
+import type { Lang } from './i18n';
 
 /* ========== Error config ========== */
 
 interface ErrorConfig {
-  title: string;
+  title: Record<Lang, string>;
   icon: 'not-found' | 'network' | 'warning';
   showSearch: boolean;
 }
 
 const ERROR_CONFIG: Record<LookupErrorKind, ErrorConfig> = {
-  not_found:       { title: 'Product Not Found',    icon: 'not-found', showSearch: true },
-  invalid_barcode: { title: 'Invalid Barcode',      icon: 'warning',   showSearch: false },
-  rate_limited:    { title: 'Too Many Requests',    icon: 'warning',   showSearch: false },
-  network:         { title: 'Connection Error',     icon: 'network',   showSearch: false },
-  server:          { title: 'Server Error',         icon: 'warning',   showSearch: false },
-  unknown:         { title: 'Something Went Wrong', icon: 'warning',   showSearch: true },
+  not_found:       { title: { en: 'Product Not Found',    es: 'Producto No Encontrado' },     icon: 'not-found', showSearch: true },
+  invalid_barcode: { title: { en: 'Invalid Barcode',      es: 'Codigo de Barras Invalido' },   icon: 'warning',   showSearch: false },
+  rate_limited:    { title: { en: 'Too Many Requests',    es: 'Demasiadas Solicitudes' },      icon: 'warning',   showSearch: false },
+  network:         { title: { en: 'Connection Error',     es: 'Error de Conexion' },           icon: 'network',   showSearch: false },
+  server:          { title: { en: 'Server Error',         es: 'Error del Servidor' },          icon: 'warning',   showSearch: false },
+  unknown:         { title: { en: 'Something Went Wrong', es: 'Algo Salio Mal' },              icon: 'warning',   showSearch: true },
 };
 
 const ERROR_ICONS = {
@@ -71,6 +73,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const { lang, t } = useI18n();
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -111,9 +114,9 @@ export default function App() {
   }, []);
 
   const handleScan = useCallback(async (barcode: string) => {
-    showToast(`Barcode detected: ${barcode}`);
+    showToast(`${t('barcodeDetected')}: ${barcode}`);
     runPipeline(barcode);
-  }, [showToast, runPipeline]);
+  }, [showToast, runPipeline, t]);
 
   const handleReset = useCallback(() => {
     setState({ view: 'scanner' });
@@ -137,9 +140,9 @@ export default function App() {
   const handlePickSearchResult = useCallback((code: string) => {
     setSearchResults([]);
     setSearchQuery('');
-    showToast(`Looking up: ${code}`);
+    showToast(`${t('lookingUp')}: ${code}`);
     runPipeline(code);
-  }, [showToast, runPipeline]);
+  }, [showToast, runPipeline, t]);
 
   return (
     <>
@@ -165,22 +168,22 @@ export default function App() {
                 <div className={`error-icon-wrap error-icon-${cfg.icon}`}>
                   {ERROR_ICONS[cfg.icon]}
                 </div>
-                <h3 className="error-title">{cfg.title}</h3>
+                <h3 className="error-title">{cfg.title[lang]}</h3>
                 <p className="error-message">{state.message}</p>
 
                 {cfg.showSearch && (
                   <div className="error-search">
-                    <p className="error-search-label">Try searching by product name instead:</p>
+                    <p className="error-search-label">{t('searchFallbackLabel')}</p>
                     <form className="error-search-form" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
                       <input
                         type="text"
                         className="manual-input"
-                        placeholder="e.g. Cheerios, Kind Bar..."
+                        placeholder={t('searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
                       <button type="submit" className="btn" disabled={!searchQuery.trim() || searching}>
-                        {searching ? 'Searching...' : 'Search'}
+                        {searching ? t('searching') : t('search')}
                       </button>
                     </form>
 
@@ -201,13 +204,13 @@ export default function App() {
                     )}
 
                     {searchResults.length === 0 && searchQuery && !searching && (
-                      <p className="search-empty">No results found. Try a different search term.</p>
+                      <p className="search-empty">{t('noResults')}</p>
                     )}
                   </div>
                 )}
 
                 <button className="btn btn-outline" onClick={handleReset}>
-                  Scan Another
+                  {t('scanAnotherBtn')}
                 </button>
               </div>
             );

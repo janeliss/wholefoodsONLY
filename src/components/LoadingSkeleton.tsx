@@ -1,16 +1,19 @@
 import './LoadingSkeleton.css';
+import { useI18n } from '../i18n';
 
 interface LoadingSkeletonProps {
   barcode: string;
 }
 
 export default function LoadingSkeleton({ barcode }: LoadingSkeletonProps) {
+  const { t } = useI18n();
+
   return (
     <div className="loading-wrap">
       <div className="loading-header">
         <div className="loading-spinner" />
         <div>
-          <p className="loading-title">Analyzing product...</p>
+          <p className="loading-title">{t('analyzing')}</p>
           <p className="loading-barcode">{barcode}</p>
         </div>
       </div>

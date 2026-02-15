@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './Results.css';
 import type { AnalysisResult, IngredientFlag, SodiumAnalysis, ScoreBreakdownItem } from '../types/product';
 import type { SneakyMatch } from '../data/sneakyIngredients';
+import { useI18n } from '../i18n';
 
 interface ResultViewProps {
   result: AnalysisResult;
@@ -14,22 +15,18 @@ const SkullIcon = () => (
   </svg>
 );
 
-const SCORE_CONFIG = {
-  good: { label: 'Whole', icon: '\u2713' as string | null, badgeClass: 'badge badge-whole', percent: 95 },
-  okay: { label: 'Questionable', icon: '!' as string | null, badgeClass: 'badge badge-questionable', percent: 55 },
-  poor: { label: 'Slop', icon: null, badgeClass: 'badge badge-slop', percent: 20 },
-};
-
-const CONCERN_LABELS: Record<string, { text: string; className: string }> = {
-  low: { text: 'Low concern', className: 'concern-low' },
-  med: { text: 'Moderate concern', className: 'concern-med' },
-  high: { text: 'High concern', className: 'concern-high' },
-};
-
 /* ========== Score Ring ========== */
 
 function ScoreRing({ score }: { score: 'good' | 'okay' | 'poor' }) {
-  const cfg = SCORE_CONFIG[score];
+  const { t } = useI18n();
+
+  const scoreConfig = {
+    good: { label: t('scoreWhole'), icon: '\u2713' as string | null, badgeClass: 'badge badge-whole', percent: 95 },
+    okay: { label: t('scoreQuestionable'), icon: '!' as string | null, badgeClass: 'badge badge-questionable', percent: 55 },
+    poor: { label: t('scoreSlop'), icon: null, badgeClass: 'badge badge-slop', percent: 20 },
+  };
+
+  const cfg = scoreConfig[score];
   const r = 34;
   const circumference = 2 * Math.PI * r;
   const offset = circumference - (cfg.percent / 100) * circumference;
@@ -55,8 +52,10 @@ function ScoreRing({ score }: { score: 'good' | 'okay' | 'poor' }) {
 /* ========== Sodium Section ========== */
 
 function SodiumSection({ analysis }: { analysis: SodiumAnalysis | null }) {
+  const { t } = useI18n();
+
   if (!analysis) {
-    return <p className="sodium-unavailable">Sodium data unavailable for this item.</p>;
+    return <p className="sodium-unavailable">{t('sodiumUnavailable')}</p>;
   }
 
   const { milligrams, percentDV, level } = analysis;
@@ -71,10 +70,16 @@ function SodiumSection({ analysis }: { analysis: SodiumAnalysis | null }) {
     high: 'var(--red)',
   };
 
+  const levelLabels: Record<string, string> = {
+    low: t('lowSodium'),
+    moderate: t('moderateSodium'),
+    high: t('highSodium'),
+  };
+
   const descriptions: Record<string, string> = {
-    low: 'Low sodium — 140 mg or less per 100g. Generally heart-healthy.',
-    moderate: 'Moderate sodium — between 140–600 mg per 100g. Watch total daily intake.',
-    high: 'High sodium — over 600 mg per 100g. May contribute to elevated blood pressure.',
+    low: t('sodiumLowDesc'),
+    moderate: t('sodiumModDesc'),
+    high: t('sodiumHighDesc'),
   };
 
   return (
@@ -93,12 +98,12 @@ function SodiumSection({ analysis }: { analysis: SodiumAnalysis | null }) {
           </svg>
         </div>
         <div className="sodium-info">
-          <div className="sodium-mg">{milligrams} mg <span className="sodium-per">per 100g</span></div>
-          <div className="sodium-dv">{percentDV}% of Daily Value</div>
-          <div className={`sodium-label ${level}`}>{level} sodium</div>
+          <div className="sodium-mg">{milligrams} mg <span className="sodium-per">{t('per100g')}</span></div>
+          <div className="sodium-dv">{percentDV}% {t('ofDailyValue')}</div>
+          <div className={`sodium-label ${level}`}>{levelLabels[level]} {t('sodium')}</div>
         </div>
       </div>
-      <p className="sodium-note">{descriptions[level]} FDA recommended daily limit: 2,300 mg.</p>
+      <p className="sodium-note">{descriptions[level]} {t('sodiumFdaNote')}</p>
     </>
   );
 }
@@ -129,18 +134,23 @@ function ExpandablePanel({ label, children, defaultOpen = false }: { label: stri
 
 function IngredientIntelPanel({ flag }: { flag: IngredientFlag }) {
   const { intel } = flag;
+  const { t } = useI18n();
 
   if (!intel) {
     return (
       <div className="flag-intel">
-        <p className="intel-unknown">
-          We're still learning about this ingredient. As a general rule, fewer processed additives means a cleaner product.
-        </p>
+        <p className="intel-unknown">{t('unknownIngredient')}</p>
       </div>
     );
   }
 
-  const concern = CONCERN_LABELS[intel.concernLevel];
+  const concernLabels: Record<string, { text: string; className: string }> = {
+    low: { text: t('lowConcern'), className: 'concern-low' },
+    med: { text: t('moderateConcern'), className: 'concern-med' },
+    high: { text: t('highConcern'), className: 'concern-high' },
+  };
+
+  const concern = concernLabels[intel.concernLevel];
 
   return (
     <div className="flag-intel">
@@ -152,21 +162,21 @@ function IngredientIntelPanel({ flag }: { flag: IngredientFlag }) {
       <p className="intel-definition">{intel.definition}</p>
 
       <div className="intel-section">
-        <div className="intel-section-label">Why it's used</div>
+        <div className="intel-section-label">{t('whyItsUsed')}</div>
         <ul className="intel-bullets">
           {intel.whyUsed.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       </div>
 
       <div className="intel-section">
-        <div className="intel-section-label">Why it may be concerning</div>
+        <div className="intel-section-label">{t('whyMayConcern')}</div>
         <ul className="intel-bullets">
           {intel.whyConcerned.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       </div>
 
       <div className="intel-section">
-        <div className="intel-section-label">Better options</div>
+        <div className="intel-section-label">{t('betterOptions')}</div>
         <ul className="intel-bullets">
           {intel.betterAlternatives.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
@@ -188,18 +198,20 @@ function IngredientIntelPanel({ flag }: { flag: IngredientFlag }) {
 /* ========== Sneaky Ingredients Section ========== */
 
 function SneakySection({ sneaky }: { sneaky: SneakyMatch[] }) {
+  const { t } = useI18n();
+
   return (
     <ul className="sneaky-list">
       {sneaky.map((item, i) => (
         <li key={i} className="sneaky-item">
           <div className="sneaky-header">
-            <span className="badge badge-sneaky">Sneaky</span>
+            <span className="badge badge-sneaky">{t('sneaky')}</span>
             <span className="sneaky-term">{item.term}</span>
           </div>
-          <ExpandablePanel label="Why it's sneaky">
+          <ExpandablePanel label={t('whyItsSneaky')}>
             <div className="sneaky-detail">
               <p className="sneaky-explanation">{item.explanation}</p>
-              <p className="sneaky-alt"><strong>Look for instead:</strong> {item.whatToLookFor}</p>
+              <p className="sneaky-alt"><strong>{t('lookForInstead')}</strong> {item.whatToLookFor}</p>
               {item.citations.length > 0 && (
                 <div className="intel-citations">
                   {item.citations.map((cite, ci) => (
@@ -248,7 +260,14 @@ function NutritionRow({ label, value, unit }: { label: string; value: number | n
 
 export default function ResultView({ result, onScanAgain }: ResultViewProps) {
   const { product, flags, alternatives, score, scoreBreakdown, sneakyIngredients, sodiumAnalysis } = result;
-  const scoreCfg = SCORE_CONFIG[score];
+  const { t } = useI18n();
+
+  const scoreConfig = {
+    good: { label: t('scoreWhole'), badgeClass: 'badge badge-whole' },
+    okay: { label: t('scoreQuestionable'), badgeClass: 'badge badge-questionable' },
+    poor: { label: t('scoreSlop'), badgeClass: 'badge badge-slop' },
+  };
+  const scoreCfg = scoreConfig[score];
 
   return (
     <div className="results">
@@ -277,7 +296,7 @@ export default function ResultView({ result, onScanAgain }: ResultViewProps) {
       {/* Why This Score */}
       {scoreBreakdown.length > 0 && (
         <div className="result-card stagger-3">
-          <h3 className="result-card-title">Why this score</h3>
+          <h3 className="result-card-title">{t('whyThisScore')}</h3>
           <ScoreBreakdownSection breakdown={scoreBreakdown} />
         </div>
       )}
@@ -285,16 +304,16 @@ export default function ResultView({ result, onScanAgain }: ResultViewProps) {
       {/* Flagged Ingredients with Intel */}
       {flags.length > 0 && (
         <div className="result-card stagger-4">
-          <h3 className="result-card-title">Flagged Ingredients</h3>
+          <h3 className="result-card-title">{t('flaggedIngredients')}</h3>
           <ul className="flag-list">
             {flags.map((flag, i) => (
               <li key={i} className="flag-item">
                 <div className="flag-header">
-                  <span className="badge badge-slop">Flag</span>
+                  <span className="badge badge-slop">{t('flag')}</span>
                   <span className="flag-name">{flag.ingredient}</span>
                 </div>
                 <p className="flag-reason">{flag.reason}</p>
-                <ExpandablePanel label="Learn more">
+                <ExpandablePanel label={t('learnMore')}>
                   <IngredientIntelPanel flag={flag} />
                 </ExpandablePanel>
               </li>
@@ -306,42 +325,42 @@ export default function ResultView({ result, onScanAgain }: ResultViewProps) {
       {/* Sneaky Ingredients */}
       {sneakyIngredients.length > 0 && (
         <div className="result-card stagger-5">
-          <h3 className="result-card-title">Sneaky Ingredients</h3>
+          <h3 className="result-card-title">{t('sneakyIngredients')}</h3>
           <SneakySection sneaky={sneakyIngredients} />
         </div>
       )}
 
       {/* Sodium Analysis */}
       <div className="result-card stagger-6">
-        <h3 className="result-card-title">Sodium Analysis</h3>
+        <h3 className="result-card-title">{t('sodiumAnalysis')}</h3>
         <SodiumSection analysis={sodiumAnalysis} />
       </div>
 
       {/* Full Ingredients */}
       <div className="result-card stagger-7">
-        <h3 className="result-card-title">Ingredients</h3>
+        <h3 className="result-card-title">{t('ingredients')}</h3>
         <p className="ingredients-text">{product.ingredients}</p>
       </div>
 
       {/* Nutrition */}
       <div className="result-card stagger-7">
-        <h3 className="result-card-title">Nutrition (per 100g)</h3>
+        <h3 className="result-card-title">{t('nutritionPer100g')}</h3>
         <div className="nutrition-grid">
-          <NutritionRow label="Calories" value={product.nutrition.calories} unit=" kcal" />
-          <NutritionRow label="Fat" value={product.nutrition.fat} unit="g" />
-          <NutritionRow label="Sat. Fat" value={product.nutrition.saturatedFat} unit="g" />
-          <NutritionRow label="Carbs" value={product.nutrition.carbs} unit="g" />
-          <NutritionRow label="Sugars" value={product.nutrition.sugars} unit="g" />
-          <NutritionRow label="Fiber" value={product.nutrition.fiber} unit="g" />
-          <NutritionRow label="Protein" value={product.nutrition.protein} unit="g" />
-          <NutritionRow label="Sodium" value={product.nutrition.sodium} unit=" mg" />
+          <NutritionRow label={t('calories')} value={product.nutrition.calories} unit=" kcal" />
+          <NutritionRow label={t('fat')} value={product.nutrition.fat} unit="g" />
+          <NutritionRow label={t('satFat')} value={product.nutrition.saturatedFat} unit="g" />
+          <NutritionRow label={t('carbs')} value={product.nutrition.carbs} unit="g" />
+          <NutritionRow label={t('sugars')} value={product.nutrition.sugars} unit="g" />
+          <NutritionRow label={t('fiber')} value={product.nutrition.fiber} unit="g" />
+          <NutritionRow label={t('protein')} value={product.nutrition.protein} unit="g" />
+          <NutritionRow label={t('sodiumNutrition')} value={product.nutrition.sodium} unit=" mg" />
         </div>
       </div>
 
       {/* Alternatives */}
       {alternatives.length > 0 && (
         <div className="result-card stagger-8">
-          <h3 className="result-card-title">Whole Food Alternatives</h3>
+          <h3 className="result-card-title">{t('wholeFoodAlternatives')}</h3>
           <ul className="alt-list">
             {alternatives.map((alt, i) => (
               <li key={i} className="alt-item">
@@ -354,7 +373,7 @@ export default function ResultView({ result, onScanAgain }: ResultViewProps) {
       )}
 
       <button className="btn btn-outline scan-again stagger-8" onClick={onScanAgain}>
-        Scan Another Product
+        {t('scanAnother')}
       </button>
     </div>
   );

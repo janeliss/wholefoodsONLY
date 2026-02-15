@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 import './Scanner.css';
+import { useI18n } from '../i18n';
 
 interface ScannerCardProps {
   onScan: (barcode: string) => void;
@@ -11,6 +12,7 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const [manualCode, setManualCode] = useState('');
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     const reader = new BrowserMultiFormatReader();
@@ -33,15 +35,15 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
       .catch((err: Error) => {
         setCameraError(
           err.name === 'NotAllowedError'
-            ? 'Camera access denied. Please allow camera permissions or enter a barcode manually.'
-            : 'Could not access camera. Try entering a barcode manually.',
+            ? t('cameraDenied')
+            : t('cameraFail'),
         );
       });
 
     return () => {
       reader.reset();
     };
-  }, [onScan]);
+  }, [onScan, t]);
 
   const handleManualSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -67,8 +69,8 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
             <line x1="7" y1="12" x2="17" y2="12" />
           </svg>
         </div>
-        <h2>Scan a product</h2>
-        <p>Point your camera at any barcode</p>
+        <h2>{t('scanTitle')}</h2>
+        <p>{t('scanSubtitle')}</p>
       </div>
 
       <div className="scanner">
@@ -78,7 +80,7 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
             <div className="scanner-overlay">
               <div className="scanner-frame" />
             </div>
-            <p className="scanner-hint">Point at a barcode</p>
+            <p className="scanner-hint">{t('scanHint')}</p>
           </div>
         ) : (
           <div className="camera-error">
@@ -87,7 +89,7 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
         )}
 
         <div className="scanner-divider">
-          <span>or enter barcode manually</span>
+          <span>{t('orManual')}</span>
         </div>
 
         <form className="manual-entry" onSubmit={handleManualSubmit}>
@@ -95,13 +97,13 @@ export default function ScannerCard({ onScan }: ScannerCardProps) {
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            placeholder="e.g. 0049000006346"
+            placeholder={t('manualPlaceholder')}
             value={manualCode}
             onChange={(e) => setManualCode(e.target.value)}
             className="manual-input"
           />
           <button type="submit" className="btn" disabled={!manualCode.trim()}>
-            Look Up
+            {t('lookUp')}
           </button>
         </form>
       </div>
